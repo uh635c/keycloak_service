@@ -6,17 +6,17 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/myrealm
+          issuer-uri: http://localhost:8082/realms/myrealm
 #          jwk-set-uri: http://localhost:8080/realms/myrealm/protocol/openid-connect/certs
 
 keycloak:
-  auth-server-url: http://localhost:8080
+  auth-server-url: http://localhost:8082
   realm: myrealm
   client-id: keycloak-client
-  client-secret: XBW6ZBprTsEz1B3MZ91fMwCYR5w2S5Vw
+  client-secret: 6YjJbZuZbdPKbzVs15XHfKycOrLTs33E
   username-admin-client: admin
   password-admin-client: admin
 
 uri:
-  token: http://localhost:8080/realms/myrealm/protocol/openid-connect/token
+  token: http://localhost:8082/realms/myrealm/protocol/openid-connect/token
 

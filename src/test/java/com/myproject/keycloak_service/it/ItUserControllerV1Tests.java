@@ -20,7 +20,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@AutoConfigureWebTestClient(timeout = "300000000000")
+@AutoConfigureWebTestClient
 @Import({KeycloakTestContainerConfig.class, KeycloakConfig.class})
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class ItUserControllerV1Tests {

@@ -14,7 +14,7 @@ public class KeycloakTestContainerConfig {
 
     @Bean
     KeycloakContainer keycloakContainer(DynamicPropertyRegistry registry) {
-        var keycloakContainer = new KeycloakContainer("quay.io/keycloak/keycloak:25.0.1").withRealmImportFile("realm-export.json");
+        var keycloakContainer = new KeycloakContainer("quay.io/keycloak/keycloak:26.0.1").withRealmImportFile("realm-export.json");
 
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
                 () -> keycloakContainer.getAuthServerUrl() + "/realms/" + realm);

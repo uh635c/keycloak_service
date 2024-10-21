@@ -1,11 +1,11 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.3.3'
-	id 'io.spring.dependency-management' version '1.1.6'
+	id 'org.springframework.boot' version "${springBootVersion}"
+	id 'io.spring.dependency-management' version "$springDependencyManagementVersion"
 }
 
-group = 'com.myproject'
-version = '0.0.1-SNAPSHOT'
+group = 'com.uh635c'
+version = '1.0.0'
 
 java {
 	toolchain {
@@ -21,7 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'org.keycloak:keycloak-admin-client:25.0.1'
+	implementation "org.keycloak:keycloak-admin-client:$keycloakAdminClient"
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -30,9 +30,9 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-	testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
-	testImplementation 'com.github.dasniko:testcontainers-keycloak:3.2.0'
+	implementation "com.squareup.okhttp3:okhttp:$okhttp3Okhttp"
+	testImplementation "com.squareup.okhttp3:mockwebserver:$okhttp3Mockwebserver"
+	testImplementation "com.github.dasniko:testcontainers-keycloak:$testcontainerKeycloak"
 }
 
 tasks.named('test') {
