@@ -7,7 +7,6 @@ import com.myproject.keycloak_service.dto.LoginDTO;
 import com.myproject.keycloak_service.dto.UserDTO;
 import com.myproject.keycloak_service.dto.UserInfoDTO;
 import com.myproject.keycloak_service.service.UserService;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -30,12 +29,6 @@ public class ItUserControllerV1Tests {
 
     @Autowired
     UserService userService;
-
-    @AfterAll
-    public static void cleanUp() {
-        System.out.println("fifnish");
-    }
-
 
     @Test
     @DisplayName("Test successful user registration functionality")
@@ -118,7 +111,7 @@ public class ItUserControllerV1Tests {
     }
 
     @Test
-    @DisplayName("Test faield user login functionality")
+    @DisplayName("Test failed user login functionality")
     public void givenIncorrectLoginDTO_whenLogin_thenExceptionReturned() {
         //given
         UserDTO userDTO = UserDTO.builder()

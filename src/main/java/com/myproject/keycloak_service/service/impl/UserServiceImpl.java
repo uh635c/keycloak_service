@@ -47,7 +47,6 @@ public class UserServiceImpl implements UserService {
                     if (response.getStatus() != 201) {
                         return Mono.error(new RegistrationFailedException("User is not registered", "REGISTRATION_FAILED"));
                     }
-//                    System.out.println(response.getEntity());
 
                     return login(userDTO.getEmail(), userDTO.getPassword());
                 });
