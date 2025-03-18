@@ -19,4 +19,9 @@ keycloak:
 
 uri:
   token: http://localhost:8082/realms/myrealm/protocol/openid-connect/token
+  person-service: http://localhost:8083/api/v1/individuals
+
+jwt:
+  header: Authorization
+
 

@@ -1,5 +1,6 @@
 package com.myproject.keycloak_service.service;
 
+import com.myproject.keycloak_service.dto.KeycloakUserDTO;
 import com.myproject.keycloak_service.dto.UserDTO;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import ru.uh635c.dto.UserRegistrationDTO;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,14 +25,15 @@ public class KeycloakService {
     @Value("${keycloak.realm}")
     public String realm;
 
-    public Mono<Response> addUser(UserDTO userDTO){
+    public Mono<Response> addUser(KeycloakUserDTO userDTO){
 
         UserRepresentation user = new UserRepresentation();
-        user.setUsername(userDTO.getEmail());
-        user.setFirstName("FirstName" + userDTO.getEmail());
-        user.setLastName("LastName" + userDTO.getEmail());
-        user.setEmail(userDTO.getEmail());
-        user.setCredentials(Collections.singletonList(createPasswordCredentials(userDTO.getPassword())));
+        user.setUsername(userDTO.email());
+        user.setFirstName(userDTO.firstName());
+        user.setLastName(userDTO.lastName());
+        user.setEmail(userDTO.email());
+        user.singleAttribute("GUID", userDTO.guid());
+        user.setCredentials(Collections.singletonList(createPasswordCredentials(userDTO.password())));
         user.setEnabled(true);
 
         return Mono.just(keycloak.realm(realm).users().create(user));
