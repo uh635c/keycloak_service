@@ -21,6 +21,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import ru.uh635c.dto.IndividualRequestDTO;
 import ru.uh635c.dto.IndividualResponseDTO;
 import ru.uh635c.dto.UserRegistrationDTO;
 
@@ -55,7 +56,7 @@ public class UserServiceImpl implements UserService {
         return webClient.post()
                 .uri(personServiceURI)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(userMapper.map(userDTO)), IndividualResponseDTO.class)
+                .body(Mono.just(userMapper.map(userDTO)), IndividualRequestDTO.class)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(IndividualResponseDTO.class);
@@ -67,6 +68,7 @@ public class UserServiceImpl implements UserService {
                                 .email(savedUser.getEmail())
                                 .firstName(savedUser.getFirstName())
                                 .lastName(savedUser.getLastName())
+                                .password(userDTO.getPassword())
                                 .build())
                         .flatMap(response -> {
                             if (response.getStatus() != 201) {
