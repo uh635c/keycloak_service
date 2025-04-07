@@ -25,6 +25,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation "org.keycloak:keycloak-admin-client:$keycloakAdminClient"
 	implementation "org.mapstruct:mapstruct:$mapstructVersion"
+	testImplementation 'io.rest-assured:rest-assured'
+	testImplementation 'org.testcontainers:mockserver'
+	testImplementation 'org.mock-server:mockserver-netty:5.15.0'
 	annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructProcessorVersion"
 	annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
 	compileOnly 'org.projectlombok:lombok'

@@ -1,0 +1,395 @@
+[
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "success_get_user@mail.com"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "da431b33",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "success_get_user@mail.com"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/api/v1/individuals/da431b33"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "da431b33",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "success_get_user@mail.com"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "incorrect_guid@mail.com"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "1",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "incorrect_guid@mail.com"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/api/v1/individuals/1"
+    },
+    "httpResponse": {
+      "statusCode": 404,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "bad request": "true"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "no_guid@mail.com"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "no_guid@mail.com"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "success_login@mail.com"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "da431b33",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "success_login@mail.com"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "failed_login@mail.com"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "da431b33",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "failed_login@mail.com"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "success_registration@mail.com"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "da431b33",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "success_registration@mail.com"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "John",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number",
+        "email": "email@mail.com"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 404,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "bad request": "user not registered"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/v1/individuals",
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      },
+      "body": {
+        "id": "da431b33",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "address": "address",
+        "zip_code": "zipCode",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "phone_number": "phone_number",
+        "passport_number": "passport_number"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "DELETE",
+      "path": "/api/v1/individuals/da431b33"
+    },
+    "httpResponse": {
+      "statusCode": 200
+    }
+  }
+]

@@ -1,7 +1,8 @@
-package com.myproject.keycloak_service.service;
+package com.myproject.keycloak_service.client;
 
+import com.myproject.keycloak_service.dto.AccessTokenDTO;
 import com.myproject.keycloak_service.dto.KeycloakUserDTO;
-import com.myproject.keycloak_service.dto.UserDTO;
+import com.myproject.keycloak_service.exceptions.LoginFailedException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
@@ -9,21 +10,32 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import ru.uh635c.dto.UserRegistrationDTO;
 
 import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class KeycloakService {
+public class KeycloakClient {
 
     private final Keycloak keycloak;
+    private final WebClient webClient;
 
     @Value("${keycloak.realm}")
     public String realm;
+    @Value("${keycloak.client-id}")
+    private String clientId;
+    @Value("${keycloak.client-secret}")
+    private String clientSecret;
+    @Value("${uri.token}")
+    private String tokenURI;
 
     public Mono<Response> addUser(KeycloakUserDTO userDTO){
 
@@ -39,9 +51,22 @@ public class KeycloakService {
         return Mono.just(keycloak.realm(realm).users().create(user));
     }
 
-    public Mono<List<UserRepresentation>> getUser(String username){
-        UsersResource usersResource = keycloak.realm(realm).users();
-        return Mono.just(usersResource.searchByUsername(username, true));
+    public Mono<AccessTokenDTO> login(String username, String password){
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", username);
+        formData.add("password", password);
+        formData.add("grant_type", "password");
+        formData.add("client_id", clientId);
+        formData.add("client_secret", clientSecret);
+
+        return webClient.post()
+                .uri(tokenURI)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .bodyToMono(AccessTokenDTO.class)
+                .onErrorResume(e -> Mono.error(new LoginFailedException("Failed to login " + username + ", check your credentials", "LOGIN_FAILED")));
+
     }
 
 

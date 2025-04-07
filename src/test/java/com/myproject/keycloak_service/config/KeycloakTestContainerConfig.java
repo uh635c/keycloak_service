@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.TestConstructor;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class KeycloakTestContainerConfig {
@@ -14,7 +16,7 @@ public class KeycloakTestContainerConfig {
 
     @Bean
     KeycloakContainer keycloakContainer(DynamicPropertyRegistry registry) {
-        var keycloakContainer = new KeycloakContainer("quay.io/keycloak/keycloak:26.0.1").withRealmImportFile("realm-export.json");
+        var keycloakContainer = new KeycloakContainer("quay.io/keycloak/keycloak:26.0.1").withRealmImportFile("realm-export_.json");
 
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
                 () -> keycloakContainer.getAuthServerUrl() + "/realms/" + realm);
@@ -23,5 +25,6 @@ public class KeycloakTestContainerConfig {
 
         return keycloakContainer;
     }
+
 
 }

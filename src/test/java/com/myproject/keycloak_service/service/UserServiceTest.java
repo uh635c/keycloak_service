@@ -1,145 +1,152 @@
 package com.myproject.keycloak_service.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.myproject.keycloak_service.client.KeycloakClient;
+import com.myproject.keycloak_service.client.PersonServiceClient;
 import com.myproject.keycloak_service.dto.AccessTokenDTO;
+import com.myproject.keycloak_service.dto.KeycloakUserDTO;
 import com.myproject.keycloak_service.exceptions.LoginFailedException;
+import com.myproject.keycloak_service.exceptions.RegistrationFailedException;
+import com.myproject.keycloak_service.exceptions.UserNotFoundException;
 import com.myproject.keycloak_service.service.impl.UserServiceImpl;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import com.myproject.keycloak_service.utils.DataUtils;
+import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.uh635c.dto.IndividualResponseDTO;
+import ru.uh635c.dto.UserRegistrationDTO;
 
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
     @Mock
-    private KeycloakService keycloakService;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public static MockWebServer mockWebServer = new MockWebServer();
-    String url = mockWebServer.url("/auth").toString();
-
-    @Spy
-    private WebClient webClient = WebClient.builder()
-            .baseUrl(url)
-            .build();
+    private KeycloakClient keycloakClient;
+    @Mock
+    private PersonServiceClient personServiceClient;
 
     @Spy
     @InjectMocks
     private UserServiceImpl userServiceTest;
 
-    @BeforeAll
-    public static void setUp() throws IOException {
-        mockWebServer.start();
+    //////////////////////////// testing getUserInfo() method /////////////////////////
+
+    @Test
+    @DisplayName("Test get user information functionality")
+    public void givenExchange_whenGetUserInfo_thenReturnUserInfo() {
+
+        //given
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjVDRQNWh4V05hV1JKM0t3QlBCbmtGa3JHdGVFdHYxeks1bGdsUzV0dkdjIn0.eyJleHAiOjE3NDIyMzc4MDAsImlhdCI6MTc0MjIzNzUwMCwianRpIjoiOWQ1NDNhZTktMWMxYS00Zjg0LWFmMWItZDVmN2YxMDM2M2YwIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgyL3JlYWxtcy9teXJlYWxtIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6IjVhYjIzNTg3LWJlNDQtNDI5Zi1hY2E5LWRlMzJiNDZkZjQ3YyIsInR5cCI6IkJlYXJlciIsImF6cCI6ImtleWNsb2FrLWNsaWVudCIsInNpZCI6IjI0MjljZTVhLWYyZTgtNDViNC04NzZlLWIyOTJkZWRmNGU5MyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDgxIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLW15cmVhbG0iLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiRmlyc3RUZXN0IExhc3RUZXN0IiwiR3VpZCI6ImRhNDMxYjMzIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGVzdCIsImdpdmVuX25hbWUiOiJGaXJzdFRlc3QiLCJmYW1pbHlfbmFtZSI6Ikxhc3RUZXN0IiwiZW1haWwiOiJrY2FfMzNAbWFpbC5ydSJ9.ZqMrGaRua4sl0dZxSU_fLO1TTP6nK5r0WsbSMJfLbA_G3xFFqPhr5x9bBXpKhLbQwVw8sedvtcuVk3yxAmPal5qlG7QLfa2jGhP_S2qMD8g2CJu22tTd4jsfSc9FHJvmPs2kiXc6qmSLGK3Y06TyNUaNybDiFAj7Oonk6DR9HqF9IJAPGaPoc25MDCZNE-XUnWdL9YqOCRNhV0QAklggRFD1EwzpmLw2wDlu7j1P8Mgm1Jue63_-dVEeonyem63f1zj2IGaKgtKGVmKtuOS3tarY2iUBE4GAOm_8PZTgNGbpWpy1zlMcSwAXcCnFbhBkdYQspKKQYANQeB29PM09cw";
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest
+                        .get("https://localhost:8081/v1/me")
+                        .header("Authorization", "Bearer " + token)
+                        .build()
+                );
+        IndividualResponseDTO individualResponseDTO = DataUtils.getIndividualResponseDto();
+
+        BDDMockito.given(personServiceClient.getUser("da431b33")).willReturn(Mono.just(individualResponseDTO));
+
+        //when
+        Mono<IndividualResponseDTO> obtainedDto = userServiceTest.getUserInfo(exchange);
+
+        //then
+        StepVerifier.create(obtainedDto)
+                .expectNext(individualResponseDTO)
+                .verifyComplete();
+        verify(personServiceClient, times(1)).getUser(anyString());
     }
 
-    @AfterAll
-    public static void tearDown() throws IOException {
-        mockWebServer.shutdown();
+    @Test
+    @DisplayName("Test get user information with bad response from personServiceClient functionality")
+    public void givenExchange_whenGetUserInfo_thenExceptionReturn() {
+
+        //given
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjVDRQNWh4V05hV1JKM0t3QlBCbmtGa3JHdGVFdHYxeks1bGdsUzV0dkdjIn0.eyJleHAiOjE3NDIyMzc4MDAsImlhdCI6MTc0MjIzNzUwMCwianRpIjoiOWQ1NDNhZTktMWMxYS00Zjg0LWFmMWItZDVmN2YxMDM2M2YwIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgyL3JlYWxtcy9teXJlYWxtIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6IjVhYjIzNTg3LWJlNDQtNDI5Zi1hY2E5LWRlMzJiNDZkZjQ3YyIsInR5cCI6IkJlYXJlciIsImF6cCI6ImtleWNsb2FrLWNsaWVudCIsInNpZCI6IjI0MjljZTVhLWYyZTgtNDViNC04NzZlLWIyOTJkZWRmNGU5MyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDgxIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLW15cmVhbG0iLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiRmlyc3RUZXN0IExhc3RUZXN0IiwiR3VpZCI6ImRhNDMxYjMzIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGVzdCIsImdpdmVuX25hbWUiOiJGaXJzdFRlc3QiLCJmYW1pbHlfbmFtZSI6Ikxhc3RUZXN0IiwiZW1haWwiOiJrY2FfMzNAbWFpbC5ydSJ9.ZqMrGaRua4sl0dZxSU_fLO1TTP6nK5r0WsbSMJfLbA_G3xFFqPhr5x9bBXpKhLbQwVw8sedvtcuVk3yxAmPal5qlG7QLfa2jGhP_S2qMD8g2CJu22tTd4jsfSc9FHJvmPs2kiXc6qmSLGK3Y06TyNUaNybDiFAj7Oonk6DR9HqF9IJAPGaPoc25MDCZNE-XUnWdL9YqOCRNhV0QAklggRFD1EwzpmLw2wDlu7j1P8Mgm1Jue63_-dVEeonyem63f1zj2IGaKgtKGVmKtuOS3tarY2iUBE4GAOm_8PZTgNGbpWpy1zlMcSwAXcCnFbhBkdYQspKKQYANQeB29PM09cw";
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest
+                        .get("https://localhost:8081/v1/me")
+                        .header("Authorization", "Bearer " + token)
+                        .build()
+                );
+        BDDMockito.given(personServiceClient.getUser(anyString())).willReturn(Mono.error(new UserNotFoundException("Something went wrong", "USER_NOT_FOUND")));
+
+        //when
+        Mono<IndividualResponseDTO> obtainedDto = userServiceTest.getUserInfo(exchange);
+
+        //then
+        StepVerifier.create(obtainedDto)
+                .expectError(UserNotFoundException.class)
+                .verify();
+        verify(personServiceClient, times(1)).getUser("da431b33");
     }
 
-//    @Test
-//    @DisplayName("Test get user information by username functionality")
-//    public void givenUsername_whenGetUserInfo_thenReturnUserInfo() {
-//
-//        //given
-//        String username = "username";
-//        long dateInMillis = System.currentTimeMillis();
-//
-//        UserRepresentation userRepresentation = new UserRepresentation();
-//        userRepresentation.setId("userId");
-//        userRepresentation.setEmail("username@email.com");
-//        userRepresentation.setCreatedTimestamp(dateInMillis);
-//
-//        UserInfoDTO userInfo = UserInfoDTO.builder()
-//                .id("userId")
-//                .createdAt(Instant.ofEpochMilli(dateInMillis).atZone(ZoneId.systemDefault()).toLocalDateTime())
-//                .email("username@email.com")
-//                .build();
-//
-//        BDDMockito.given(keycloakService.getUser(anyString())).willReturn(Mono.just(List.of(userRepresentation)));
-//
-//        //when
-//        Mono<IndividualResponseDTO> obtainedUserRepresentation = userServiceTest.getUserInfo("username");
-//
-//        //then
-//        StepVerifier.create(obtainedUserRepresentation)
-//                .assertNext(user -> {
-//                    verify(keycloakService, times(1)).getUser(anyString());
-//                    assertThat(user).isEqualTo(userInfo);
-//                })
-//                .verifyComplete();
-//    }
-//
-//    @Test
-//    @DisplayName("Test get user by incorrect username functionality")
-//    public void givenIncorrectUsername_whenGetUserInfo_thenExceptionReturn() {
-//
-//        //given
-//        BDDMockito.given(keycloakService.getUser(anyString())).willReturn(Mono.just(new ArrayList<UserRepresentation>()));
-//
-//        //when
-//        Mono<IndividualResponseDTO> obtainedUserRepresentation = userServiceTest.getUserInfo("incorrect username");
-//
-//        //then
-//        StepVerifier.create(obtainedUserRepresentation)
-//                .expectError(UserNotFoundException.class)
-//                .verify();
-//    }
+    @Test
+    @DisplayName("Test get user information with incorrect exchange functionality")
+    public void givenIncorrectExchange_whenGetUserInfo_thenExceptionReturn() {
+
+        //given
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest
+                        .get("https://localhost:8081/v1/me")
+                        .header("Authorization", "Bearer " + token)
+                        .build()
+                );
+
+        //when
+        Mono<IndividualResponseDTO> obtainedDto = userServiceTest.getUserInfo(exchange);
+
+        //then
+        StepVerifier.create(obtainedDto)
+                .expectError(UserNotFoundException.class)
+                .verify();
+        verify(personServiceClient, times(0)).getUser(anyString());
+    }
+
+
+    //////////////////////////// testing login() method /////////////////////////////
 
     @Test
     @DisplayName("Test login user by username and password functionality")
     public void givenUsernameAndPassword_whenLoginUser_thenReturnAccessTokenDTO() throws JsonProcessingException {
 
         //given
-        AccessTokenDTO accessTokenDTO = AccessTokenDTO.builder()
-                .accessToken("accessToken")
-                .expiresIn(System.currentTimeMillis())
-                .refreshToken("refreshToken")
-                .tokenType("Bearer")
-                .build();
+        AccessTokenDTO accessTokenDTO = DataUtils.getAccessTokenDTO();
 
-        mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .setBody(objectMapper.writeValueAsString(accessTokenDTO)));
-
+        BDDMockito.given(keycloakClient.login(anyString(), anyString())).willReturn(Mono.just(accessTokenDTO));
 
         //when
-        Mono<AccessTokenDTO> obtainedToken = userServiceTest.login("username", "password");
+        Mono<AccessTokenDTO> obtainedDto = userServiceTest.login("username", "password");
 
         //then
-        StepVerifier.create(obtainedToken)
+        StepVerifier.create(obtainedDto)
                 .expectNext(accessTokenDTO)
                 .verifyComplete();
+        verify(keycloakClient, times(1)).login(anyString(), anyString());
     }
 
     @Test
-    @DisplayName("Test login user by incorrect username and password functionality")
-    public void givenIncorrectUsernameAndPassword_whenLoginUser_thenReturnException() throws JsonProcessingException {
+    @DisplayName("Test login user functionality when keycloakService return Exception")
+    public void givenUsernameAndPassword_whenLoginUser_thenReturnException() throws JsonProcessingException {
 
         //given
-        mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value()));
+        BDDMockito.given(keycloakClient.login(anyString(), anyString()))
+                .willReturn(Mono.error(new LoginFailedException("Failed to login, check your credentials", "LOGIN_FAILED")));
 
         //when
         Mono<AccessTokenDTO> obtainedToken = userServiceTest.login("username", "password");
@@ -148,85 +155,137 @@ public class UserServiceTest {
         StepVerifier.create(obtainedToken)
                 .expectError(LoginFailedException.class)
                 .verify();
+        verify(keycloakClient, times(1)).login(anyString(), anyString());
     }
 
-//    @Test
-//    @DisplayName("Test register user by email and password functionality")
-//    public void givenUsernameAndPassword_whenRegisterUser_thenReturnAccessTokenDTO() {
-//
-//        //given
-//        UserDTO userDTO = UserDTO.builder()
-//                .email("username@email.com")
-//                .password("password")
-//                .confirmedPassword("password")
-//                .build();
-//
-//        AccessTokenDTO accessTokenDTO = AccessTokenDTO.builder()
-//                .accessToken("accessToken")
-//                .expiresIn(System.currentTimeMillis())
-//                .refreshToken("refreshToken")
-//                .tokenType("Bearer")
-//                .build();
-//
-//        ServerResponse response = new ServerResponse();
-//        response.setStatus(201);
-//
-//
-//        BDDMockito.given(keycloakService.addUser(any(UserDTO.class))).willReturn(Mono.just(response));
-//        BDDMockito.given(userServiceTest.login("username@email.com","password")).willReturn(Mono.just(accessTokenDTO));
-//
-//        //when
-//        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userDTO);
-//
-//        //then
-//        StepVerifier.create(obtainedToken)
-//                .expectNext(accessTokenDTO)
-//                .verifyComplete();
-//    }
-//
-//    @Test
-//    @DisplayName("Test register user by email and incorrect confirmed password functionality")
-//    public void givenIncorrectConfirmedPassword_whenRegisterUser_thenReturnException() {
-//
-//        //given
-//        UserDTO userDTO = UserDTO.builder()
-//                .email("username@email.com")
-//                .password("password")
-//                .confirmedPassword("passwordd")
-//                .build();
-//
-//        //when
-//        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userDTO);
-//
-//        //then
-//        StepVerifier.create(obtainedToken)
-//                .expectError(RegistrationFailedException.class)
-//                .verify();
-//    }
-//
-//    @Test
-//    @DisplayName("Test user registration by email and password functionality")
-//    public void givenKeycloakResponseStatusNot201_whenRegisterUser_thenReturnException() {
-//
-//        //given
-//        UserDTO userDTO = UserDTO.builder()
-//                .email("username@email.com")
-//                .password("password")
-//                .confirmedPassword("password")
-//                .build();
-//
-//        ServerResponse response = new ServerResponse();
-//        response.setStatus(400);
-//
-//        BDDMockito.given(keycloakService.addUser(any(UserDTO.class))).willReturn(Mono.just(response));
-//
-//        //when
-//        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userDTO);
-//
-//        //then
-//        StepVerifier.create(obtainedToken)
-//                .expectErrorMessage("User is not registered")
-//                .verify();
-//    }
+
+    //////////////////////////// testing registerUser() method /////////////////////////////
+
+    @Test
+    @DisplayName("Test register user by provided UserRegistrationDto functionality")
+    public void givenUserRegistrationDto_whenRegisterUser_thenReturnAccessTokenDTO() {
+
+        //given
+        IndividualResponseDTO individualResponseDTO = DataUtils.getIndividualResponseDto();
+        UserRegistrationDTO userRegistrationDTO = DataUtils.getUserRegistrationDTO();
+        ServerResponse response =DataUtils.getServerResponse201();
+        AccessTokenDTO accessTokenDTO = DataUtils.getAccessTokenDTO();
+
+        BDDMockito.given(personServiceClient.registerUser(any(UserRegistrationDTO.class)))
+                .willReturn(Mono.just(individualResponseDTO));
+        BDDMockito.given(keycloakClient.addUser(any(KeycloakUserDTO.class))).willReturn(Mono.just(response));
+        BDDMockito.given(keycloakClient.login(anyString(),anyString())).willReturn(Mono.just(accessTokenDTO));
+
+        //when
+        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userRegistrationDTO);
+
+        //then
+        StepVerifier.create(obtainedToken)
+                .expectNext(accessTokenDTO)
+                .verifyComplete();
+        verify(personServiceClient, times(1)).registerUser(any(UserRegistrationDTO.class));
+        verify(keycloakClient, times(1)).addUser(any(KeycloakUserDTO.class));
+        verify(keycloakClient, times(1)).login(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Test register user by provided UserRegistrationDto with incorrect passwords functionality")
+    public void givenIncorrectUserRegistrationDto_whenRegisterUser_thenReturnException() {
+
+        //given
+        UserRegistrationDTO userRegistrationDTO = DataUtils.getUserRegistrationDTO()
+                .toBuilder()
+                .confirmedPassword("pass")
+                .build();
+
+        //when
+        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userRegistrationDTO);
+
+        //then
+        StepVerifier.create(obtainedToken)
+                .expectError(RegistrationFailedException.class)
+                .verify();
+        verify(personServiceClient, times(0)).registerUser(any(UserRegistrationDTO.class));
+        verify(keycloakClient, times(0)).addUser(any(KeycloakUserDTO.class));
+        verify(keycloakClient, times(0)).login(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Test register user functionality when personalServiceClient return Exception")
+    public void givenUserRegistrationDto_whenRegisterUser_thenReturnPersonServiceClientException() {
+
+        //given
+        UserRegistrationDTO userRegistrationDTO = DataUtils.getUserRegistrationDTO();
+
+        BDDMockito.given(personServiceClient.registerUser(any(UserRegistrationDTO.class)))
+                .willReturn(Mono.error(new RegistrationFailedException("Something went wrong", "REGISTRATION_FAILED")));
+
+        //when
+        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userRegistrationDTO);
+
+        //then
+        StepVerifier.create(obtainedToken)
+                .expectError(RegistrationFailedException.class)
+                .verify();
+        verify(personServiceClient, times(1)).registerUser(any(UserRegistrationDTO.class));
+        verify(keycloakClient, times(0)).addUser(any(KeycloakUserDTO.class));
+        verify(keycloakClient, times(0)).login(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Test register user functionality when keycloakClient.addUser() return Exception")
+    public void givenUserRegistrationDto_whenRegisterUser_thenReturnKeycloakClientException() {
+
+        //given
+        IndividualResponseDTO individualResponseDTO = DataUtils.getIndividualResponseDto();
+        UserRegistrationDTO userRegistrationDTO = DataUtils.getUserRegistrationDTO();
+        ServerResponse response =DataUtils.getServerResponse404();
+
+        BDDMockito.given(personServiceClient.registerUser(any(UserRegistrationDTO.class)))
+                .willReturn(Mono.just(individualResponseDTO));
+        BDDMockito.given(personServiceClient.deleteUser(anyString()))
+                .willReturn(Mono.empty());
+        BDDMockito.given(keycloakClient.addUser(any(KeycloakUserDTO.class))).willReturn(Mono.just(response));
+
+        //when
+        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userRegistrationDTO);
+
+        //then
+        StepVerifier.create(obtainedToken)
+                .expectError(RegistrationFailedException.class)
+                .verify();
+        verify(personServiceClient, times(1)).registerUser(any(UserRegistrationDTO.class));
+        verify(personServiceClient, times(1)).deleteUser(anyString());
+        verify(keycloakClient, times(1)).addUser(any(KeycloakUserDTO.class));
+        verify(keycloakClient, times(0)).login(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Test register user by provided UserRegistrationDto functionality")
+    public void givenUserRegistrationDto_whenRegisterUser_thenReturnKeycloakClientLoginException() {
+
+        //given
+        IndividualResponseDTO individualResponseDTO = DataUtils.getIndividualResponseDto();
+        UserRegistrationDTO userRegistrationDTO = DataUtils.getUserRegistrationDTO();
+        ServerResponse response =DataUtils.getServerResponse201();
+
+
+        BDDMockito.given(personServiceClient.registerUser(any(UserRegistrationDTO.class)))
+                .willReturn(Mono.just(individualResponseDTO));
+        BDDMockito.given(keycloakClient.addUser(any(KeycloakUserDTO.class))).willReturn(Mono.just(response));
+        BDDMockito.given(keycloakClient.login(anyString(),anyString()))
+                .willReturn(Mono.error(new LoginFailedException("Failed to login", "LOGIN_FAILED")));
+
+        //when
+        Mono<AccessTokenDTO> obtainedToken = userServiceTest.registerUser(userRegistrationDTO);
+
+        //then
+        StepVerifier.create(obtainedToken)
+                .expectError(LoginFailedException.class)
+                .verify();
+        verify(personServiceClient, times(1)).registerUser(any(UserRegistrationDTO.class));
+        verify(keycloakClient, times(1)).addUser(any(KeycloakUserDTO.class));
+        verify(keycloakClient, times(1)).login(anyString(), anyString());
+    }
 
 }
